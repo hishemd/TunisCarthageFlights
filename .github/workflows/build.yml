@@ -15,10 +15,14 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-            - run: gradle assembleDebug --no-daemon --console=plain 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+      - name: Build
         working-directory: TunisCarthageFlights
-      - if: failure()
-        run: grep -E "^e: " TunisCarthageFlights/build.log | head -40 >> $GITHUB_STEP_SUMMARY
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --console=plain 2>&1 | tee build.log
+      - name: Show errors
+        if: failure()
+        run: grep -E "^e: " TunisCarthageFlights/build.log | head -40 | tee -a $GITHUB_STEP_SUMMARY || true
       - uses: actions/upload-artifact@v4
         with:
           name: TunisCarthageFlights-apk
